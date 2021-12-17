@@ -1,9 +1,9 @@
-from django.views import generic
+from django.views import generic,render
 from django.views.generic import ListView, CreateView, UpdateView
-
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from product.forms import VariantForm
 from product.models import Variant
-
+from choices import varient_choice
 
 class BaseVariantView(generic.View):
     form_class = VariantForm
@@ -11,6 +11,18 @@ class BaseVariantView(generic.View):
     template_name = 'variants/create.html'
     success_url = '/product/variants'
 
+def index(request):
+  variant = Variant.objects.order_by('-list_date').filter(is_published=True)
+
+  paginator = Paginator(Variant, 6)
+  page = request.GET.get('page')
+  paged_listings = paginator.get_page(page)
+
+  context = {
+    'varient': paged_listings
+  }
+
+  return render(request, 'templates/base.html', context)
 
 class VariantView(BaseVariantView, ListView):
     template_name = 'variants/list.html'
